@@ -43,7 +43,9 @@
                         : originalResponse;
                     byteLength = (await response.arrayBuffer()).byteLength;
                     const duration = new Date().valueOf() - startTime.valueOf();
-                    const message = `Obtained ${byteLength} bytes in <strong>${duration}ms</strong>`;
+                    const message = byteLength > 0
+                        ? `Obtained ${byteLength} bytes in <strong>${duration}ms</strong>`
+                        : 'Error: failed to obtain data';
                     document.querySelector(outputElemSelector).innerHTML = message;
                     results.push(duration);
                 }
@@ -51,7 +53,9 @@
                 results.sort((a, b) => a - b);
                 const median = results[Math.floor(results.length * 0.5)];
                 const p90 = results[Math.floor(results.length * 0.9)];
-                const message = `Obtained ${byteLength} bytes in median <strong>${median}ms</strong>; 90th percentile <strong>${p90}ms</strong>`;
+                const message = byteLength > 0
+                    ? `Obtained ${byteLength} bytes in median <strong>${median}ms</strong>; 90th percentile <strong>${p90}ms</strong>`
+                    : 'Error: failed to obtain data';
                 document.querySelector(outputElemSelector).innerHTML = message;
             };
         </script>
