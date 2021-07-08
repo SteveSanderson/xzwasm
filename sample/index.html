@@ -3,17 +3,25 @@
         <fieldset>
             <legend>Perf test</legend>
             <p>
-                <button onclick="perf('data/random.bin', '#perf-uncompressed', false)">Start</button>
+                File size:
+                <select id="perf-file-size">
+                    <option value="10K">10 KiB</option>
+                    <option value="1M" selected>1 MiB</option>
+                    <option value="10M">10 MiB</option>
+                </select>
+            </p>
+            <p>
+                <button onclick="perf('data/random-SIZE.bin', '#perf-uncompressed', false)">Start</button>
                 <strong>Uncompressed file</strong>
                 <span id='perf-uncompressed'></span>
             </p>
             <p>
-                <button onclick="perf('data/random-brotli.bin', '#perf-brotli', false)">Start</button>
+                <button onclick="perf('data/random-SIZE-brotli.bin', '#perf-brotli', false)">Start</button>
                 <strong>Brotli compressed</strong>
                 <span id='perf-brotli'></span>
             </p>
             <p>
-                <button onclick="perf('data/random.bin.xz', '#perf-xz', true)">Start</button>
+                <button onclick="perf('data/random-SIZE.bin.xz', '#perf-xz', true)">Start</button>
                 <strong>XZ compressed</strong>
                 <span id='perf-xz'></span>
             </p>
@@ -29,7 +37,8 @@
             window.perf = async function(urlToFetch, outputElemSelector, useXz) {
                 const results = [];
                 let byteLength;
-                for (let i = 0; i < 20; i++) {
+                urlToFetch = urlToFetch.replace('SIZE', document.getElementById('perf-file-size').value);
+                for (let i = 0; i < 100; i++) {
                     const startTime = new Date();
                     const originalResponse = await fetch(urlToFetch);
                     const response = useXz
@@ -43,7 +52,7 @@
                     results.push(duration);
                 }
 
-                results.sort();
+                results.sort((a, b) => a - b);
                 const median = results[Math.floor(results.length * 0.5)];
                 const p90 = results[Math.floor(results.length * 0.9)];
                 const message = `Obtained ${byteLength} bytes in median <strong>${median}ms</strong>; 90th percentile <strong>${p90}ms</strong>`;

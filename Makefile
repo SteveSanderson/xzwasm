@@ -34,9 +34,15 @@ sample/lib/*.*: dist/xzwasm.wasm src/xzwasm.js
 
 sample/data/random*:
 	# Make some random data for perf test. Obviously it won't compress well but that's not important here.
-	dd if=/dev/urandom of=sample/data/random.bin bs=1M count=10 iflag=fullblock
-	xz --check=crc32 -9 -k sample/data/random.bin
-	brotli sample/data/random.bin -o sample/data/random-brotli.bin.br
+	dd if=/dev/urandom of=sample/data/random-10K.bin bs=1K count=10 iflag=fullblock
+	dd if=/dev/urandom of=sample/data/random-1M.bin bs=1M count=1 iflag=fullblock
+	dd if=/dev/urandom of=sample/data/random-10M.bin bs=1M count=10 iflag=fullblock
+	xz --check=crc32 -9 -k sample/data/random-10K.bin
+	xz --check=crc32 -9 -k sample/data/random-1M.bin
+	xz --check=crc32 -9 -k sample/data/random-10M.bin
+	brotli sample/data/random-10K.bin -o sample/data/random-10K-brotli.bin.br
+	brotli sample/data/random-1M.bin -o sample/data/random-1M-brotli.bin.br
+	brotli sample/data/random-10M.bin -o sample/data/random-10M-brotli.bin.br
 
 run-sample:
 	http-server -b
