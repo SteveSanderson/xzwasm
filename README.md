@@ -68,13 +68,22 @@ const decompressedResponse = new Response(
    new XzReadableStream(compressedResponse.body)
 );
 
-// We now have a regular Response object, so can use standard APIs to parse its body data, such as .text(), .json(), or .arrayBuffer():
+// We now have a regular Response object, so can use standard APIs to parse its body data,
+// such as .text(), .json(), or .arrayBuffer():
 const text = await decompressedResponse.text();
 ```
 
-The API is designed to be as JavaScript-standard as possible, so `XzReadableStream` is a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) instance, which in turn means you can feed it into a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), and in turn get a blob, an ArrayBuffer, JSON data, or anything else that you browser can do with a `Reponse`.
+The API is designed to be as JavaScript-standard as possible, so `XzReadableStream` is a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) instance, which in turn means you can feed it into a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), and in turn get a blob, an ArrayBuffer, JSON data, or anything else that you browser can do with a `Response`.
 
-**Note:** If you're using a `<script>` to reference xzwasm, you probably need to prefix `XzReadableStream` with `xzwasm`. For example, `new xzwasm.XzReadableStream(compressedResponse.body)`.
+**Note:** If you're using a `<script>` tag to reference xzwasm, you probably need to prefix `XzReadableStream` with `xzwasm`. For example, `new xzwasm.XzReadableStream(compressedResponse.body)`.
+
+## Size and speed
+
+The JavaScript/WebAssembly code in this library weighs just under **8 KB** if served with Brotli compression. So, of course, you only make a net gain on bandwidth if you're saving more than 8 KB by using XZ compression.
+
+Decompressing `.xz` data using xzwasm, on Chromium, takes roughly 3x as long as Chromium's native Brotli decompressor.
+
+As for whether this is a good tradeoff for you, see [Why would anyone do this?](#why-would-anyone-do-this)
 
 ## Building code in this repo
 
