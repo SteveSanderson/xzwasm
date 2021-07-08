@@ -1,22 +1,43 @@
 <html>
     <body>
+        <fieldset>
+            <legend>Perf test</legend>
+            <p>
+                <button onclick="perf('data/random.bin', '#perf-uncompressed', false)">Start</button>
+                <strong>Uncompressed file</strong>
+                <span id='perf-uncompressed'></span>
+            </p>
+            <p>
+                <button onclick="perf('data/random.bin.br', '#perf-brotli', false)">Start</button>
+                <strong>Brotli compressed</strong>
+                <span id='perf-brotli'></span>
+            </p>
+            <p>
+                <button onclick="perf('data/random.bin.xz', '#perf-xz', true)">Start</button>
+                <strong>XZ compressed</strong>
+                <span id='perf-xz'></span>
+            </p>
+        </fieldset>
 
-    </body>
-    <script type='module'>
-        import { XzReadableStream } from './lib/xzwasm.js';
-
-        (async function load() {
+        <script type='module'>
+            import { XzReadableStream } from './lib/xzwasm.js';
+    
             const wasmBytes = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
-            const wasmResponse = new Response(wasmBytes, { headers: { "Content-Type": "application/wasm" } });
+            const wasmResponse = new Response(wasmBytes, { headers: { 'Content-Type': 'application/wasm' } });
             const module = await WebAssembly.instantiateStreaming(wasmResponse, {});
-
-            for (var i = 0; i < 3; i++) {
-                const helloResponse = await fetch('data/hello.txt.xz');
-                const decompressedStream = new XzReadableStream(module.instance, helloResponse.body);
-                const decompressedResponse = new Response(decompressedStream, { headers: { "Content-Type": "text/html" } });
-                const allText = await decompressedResponse.text();
-                console.log(allText);
-            }
-        })();
-    </script>
+    
+            window.perf = async function(urlToFetch, outputElemSelector, useXz) {
+                const startTime = new Date();
+                const originalResponse = await fetch(urlToFetch);
+                const response = useXz
+                    ? new Response(new XzReadableStream(module.instance, originalResponse.body),
+                        { headers: { } })
+                    : originalResponse;
+                const allBytes = await response.arrayBuffer();
+                const duration = new Date().valueOf() - startTime.valueOf();
+                const message = `Fetched ${allBytes.byteLength} bytes in ${duration}ms`;
+                document.querySelector(outputElemSelector).textContent = message;
+            };
+        </script>
+    </body>
 </html>
