@@ -9,25 +9,38 @@
                 this.memory = this.exports.memory;
                 this.ptr = this.exports.create_context();
                 this._refresh();
+                this.bufSize = this.mem32[0];
+                this.inStart = this.mem32[1] - this.ptr;
+                this.inEnd = this.inStart + this.bufSize;
+                this.outStart = this.mem32[4] - this.ptr;
             }
 
             supplyInput(sourceDataUint8Array) {
-                this.in.set(sourceDataUint8Array, 0);
+                const inBuffer = this.mem8.subarray(this.inStart, this.inEnd);
+                inBuffer.set(sourceDataUint8Array, 0);
                 this.exports.supply_input(this.ptr, sourceDataUint8Array.byteLength);
                 this._refresh();
             }
 
             getNextOutput() {
                 const result = this.exports.get_next_output(this.ptr);
+                this._refresh();
                 if (result !== XZ_OK && result !== XZ_STREAM_END) {
                     throw new Error(`get_next_output failed with error code ${result}`);
                 }
-                this._refresh();
-                return result === XZ_STREAM_END;
+                const outChunk = this.mem8.subarray(this.outStart, this.outStart + /* outPos */ this.mem32[5]);
+                return { outChunk, finished: result === XZ_STREAM_END };
+            }
+
+            needsMoreInput() {
+                return /* inPos */ this.mem32[2] === /* inSize */ this.mem32[3];
+            }
+
+            outputBufferIsFull() {
+                return /* outPos */ this.mem32[5] === this.bufSize;
             }
 
             resetOutputBuffer() {
-                // outPos = 0;
                 this.outPos = this.mem32[5] = 0;
             }
 
@@ -40,53 +53,35 @@
                 if (this.memory.buffer !== this.mem8?.buffer) {
                     this.mem8 = new Uint8Array(this.memory.buffer, this.ptr);
                     this.mem32 = new Uint32Array(this.memory.buffer, this.ptr);
-
-                    // First-time init
-                    if (!this.bufSize) {
-                        this.bufSize = this.mem32[0];
-                        this.inStart = this.mem32[1] - this.ptr;
-                        this.outStart = this.mem32[4] - this.ptr;
-                        this.inEnd = this.inStart + this.bufSize;
-                        this.outEnd = this.outStart + this.bufSize;
-                    }
-
-                    this.in = this.mem8.subarray(this.inStart, this.inEnd);
-                    this.out = this.mem8.subarray(this.outStart, this.outEnd);
                 }
-
-                this.inPos = this.mem32[2];
-                this.inSize = this.mem32[3];
-                this.outPos = this.mem32[5];
-                this.outSize = this.mem32[6];
             }
         }
 
         (async function load() {
             const wasmResponse = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
             const module = await WebAssembly.instantiate(wasmResponse, {});
+            const sourceBuffer = await (await fetch('hello.txt.xz')).arrayBuffer();
 
             for (var i = 0; i < 3; i++) {
                 const context = new XzContext(module.instance);
                 try {
-                    const sourceBuffer = await (await fetch('hello.txt.xz')).arrayBuffer();
                     const outputBuffer = new ArrayBuffer(10*1024*1024);
                     let outputData = new Uint8Array(outputBuffer, 0, 0);
                     let sourceData = new Uint8Array(sourceBuffer);
                     let finished = false;
+                    let outChunk;
                     while (!finished) {
-                        if (context.inPos === context.inSize) {
+                        if (context.needsMoreInput()) {
                             const nextInputLength = Math.min(context.bufSize, sourceData.byteLength);
                             context.supplyInput(sourceData.subarray(0, nextInputLength));
                             sourceData = sourceData.subarray(nextInputLength);
                         }
 
-                        finished = context.getNextOutput();
+                        ({ outChunk, finished } = context.getNextOutput());
 
-                        if (context.outPos === context.bufSize || finished) {
-                            // Emit output
-                            outputData = new Uint8Array(outputBuffer, 0, outputData.byteLength + context.outPos);
-                            outputData.set(context.out.subarray(0, context.outPos), outputData.byteLength - context.outPos);
-
+                        if (finished || context.outputBufferIsFull()) {
+                            outputData = new Uint8Array(outputBuffer, 0, outputData.byteLength + outChunk.byteLength);
+                            outputData.set(outChunk, outputData.byteLength - outChunk.byteLength);
                             context.resetOutputBuffer();
                         }
                     }
