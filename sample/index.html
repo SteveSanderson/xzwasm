@@ -1,0 +1,9 @@
+<html>
+    <script>
+        (async function load() {
+            const wasmResponse = await (await fetch('xzwasm.wasm')).arrayBuffer();
+            const module = await WebAssembly.instantiate(wasmResponse, {});
+            console.log(module.instance.exports.testInt());
+        })();
+    </script>
+</html>
