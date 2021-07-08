@@ -1,29 +1,66 @@
 <html>
     <script>
+        class XzContext {
+            constructor(moduleInstance) {
+                this.exports = moduleInstance.exports;
+                this.memory = this.exports.memory;
+                this.ptr = this.exports.create_context();
+                this._refresh();
+            }
+
+            supplyInput(sourceDataUint8Array) {
+                this.in.set(sourceDataUint8Array, 0);
+                this.exports.supply_input(this.ptr, sourceDataUint8Array.byteLength);
+                this._refresh();
+            }
+
+            getNextOutput() {
+                const result = this.exports.get_next_output(this.ptr);
+                if (result !== 0) {
+                    throw new Error(`get_next_output failed with error code ${result}`);
+                }
+                this._refresh();
+            }
+
+            dispose() {
+                this.exports.destroy_context(this.ptr);
+                this.exports = null;
+            }
+
+            _refresh() {
+                if (this.memory.buffer !== this.mem8?.buffer) {
+                    this.mem8 = new Uint8Array(this.memory.buffer, this.ptr);
+                    this.mem32 = new Uint32Array(this.memory.buffer, this.ptr);
+
+                    // First-time init
+                    if (!this.bufSize) {
+                        this.bufSize = this.mem32[0];
+                        this.inStart = this.mem32[1] - this.ptr;
+                        this.outStart = this.mem32[4] - this.ptr;
+                        this.inEnd = this.inStart + this.bufSize;
+                        this.outEnd = this.outStart + this.bufSize;
+                    }
+
+                    this.in = this.mem8.subarray(this.inStart, this.inEnd);
+                    this.out = this.mem8.subarray(this.outStart, this.outEnd);
+                }
+            }
+        }
+
         (async function load() {
             const wasmResponse = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
             const module = await WebAssembly.instantiate(wasmResponse, {});
 
             for (var i = 0; i < 3; i++) {
-                const context = module.instance.exports.create_context();
-                const xz_buf_ptr = context + 4;
-
-                const mem8 = new Uint8Array(module.instance.exports.memory.buffer);
-                const mem32 = new Uint32Array(module.instance.exports.memory.buffer);
-                const bufsize = mem32[context>>2];
-                const inptr = mem32[(xz_buf_ptr>>2)];                
-                const outptr = mem32[(xz_buf_ptr>>2) + 3];
-                const inArrayBuffer = mem8.subarray(inptr, inptr + bufsize);
-                const outArrayBuffer = mem8.subarray(outptr, outptr + bufsize);
-
-                const sourceData = base64ToArrayBuffer('/Td6WFoAAAFpIt42AgAhARYAAAB0L+WjAQAFSGVsbG8KAAAAFjWWMQABGgbF6sh5kEKZDQEAAAAAAVla');
-                inArrayBuffer.set(new Uint8Array(sourceData), 0);
-                module.instance.exports.supply_input(context, sourceData.byteLength);
-
-                console.log(module.instance.exports.get_next_output(context));
-
-                console.log(context);
-                module.instance.exports.destroy_context(context);
+                const context = new XzContext(module.instance);
+                console.log(context.ptr);
+                try {
+                    const sourceData = new Uint8Array(base64ToArrayBuffer('/Td6WFoAAAFpIt42AgAhARYAAAB0L+WjAQAFSGVsbG8KAAAAFjWWMQABGgbF6sh5kEKZDQEAAAAAAVla'));
+                    context.supplyInput(sourceData);
+                    context.getNextOutput();
+                } finally {
+                    context.dispose();
+                }
             }
         })();
 
