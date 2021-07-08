@@ -77,6 +77,10 @@ The API is designed to be as JavaScript-standard as possible, so `XzReadableStre
 
 **Note:** If you're using a `<script>` tag to reference xzwasm, you probably need to prefix `XzReadableStream` with `xzwasm`. For example, `new xzwasm.XzReadableStream(compressedResponse.body)`.
 
+## Browser support
+
+This should work on any moderately recent browser. It's tested on current versions of Firefox, Chrome, Edge, and Safari.
+
 ## Size and speed
 
 The JavaScript/WebAssembly code in this library weighs just under **8 KB** if served with Brotli compression. So, of course, you only make a net gain on bandwidth if you're saving more than 8 KB by using XZ compression.
