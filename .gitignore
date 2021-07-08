@@ -1,4 +1,4 @@
 .vscode/
 dist/
 sample/lib/
-sample/random*
+sample/data/random*
