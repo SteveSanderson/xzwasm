@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
@@ -24,6 +25,14 @@ module.exports = {
     },
     optimization: {
         minimize: true,
-        minimizer: [new TerserPlugin({ include: /\.min\.js$/ })]
-    }
+        minimizer: [new TerserPlugin({ include: /\.min\.js$/, extractComments: false })]
+    },
+    plugins: [
+        new webpack.BannerPlugin({
+            banner: ''
+                + 'xzwasm (c) Steve Sanderson. License: MIT - https://github.com/SteveSanderson/xzwasm\n'
+                + 'Contains xz-embedded by Lasse Collin and Igor Pavlov. License: Public domain - https://tukaani.org/xz/embedded.html\n'
+                + 'and walloc (c) 2020 Igalia, S.L. License: MIT - https://github.com/wingo/walloc'
+        })
+    ]
 }
