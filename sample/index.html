@@ -8,14 +8,33 @@
                 const context = module.instance.exports.create_context();
                 const xz_buf_ptr = context + 4;
 
-                const mem = new Uint32Array(module.instance.exports.memory.buffer);
-                const bufsize = mem[context>>2];
-                const inptr = mem[(xz_buf_ptr>>2)];
-                const outptr = mem[(xz_buf_ptr>>2) + 3];
+                const mem8 = new Uint8Array(module.instance.exports.memory.buffer);
+                const mem32 = new Uint32Array(module.instance.exports.memory.buffer);
+                const bufsize = mem32[context>>2];
+                const inptr = mem32[(xz_buf_ptr>>2)];                
+                const outptr = mem32[(xz_buf_ptr>>2) + 3];
+                const inArrayBuffer = mem8.subarray(inptr, inptr + bufsize);
+                const outArrayBuffer = mem8.subarray(outptr, outptr + bufsize);
+
+                const sourceData = base64ToArrayBuffer('/Td6WFoAAAFpIt42AgAhARYAAAB0L+WjAQAFSGVsbG8KAAAAFjWWMQABGgbF6sh5kEKZDQEAAAAAAVla');
+                inArrayBuffer.set(new Uint8Array(sourceData), 0);
+                module.instance.exports.supply_input(context, sourceData.byteLength);
+
+                console.log(module.instance.exports.get_next_output(context));
 
                 console.log(context);
                 module.instance.exports.destroy_context(context);
             }
         })();
+
+        function base64ToArrayBuffer(base64) {
+            var binary_string = window.atob(base64);
+            var len = binary_string.length;
+            var bytes = new Uint8Array(len);
+            for (var i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
     </script>
 </html>
