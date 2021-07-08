@@ -56,12 +56,28 @@ class XzContext {
 }
 
 export class XzReadableStream extends ReadableStream {
-    constructor(wasmModuleInstance, compressedStream) {
-        const xzContext = new XzContext(wasmModuleInstance);
-        const compressedReader = compressedStream.getReader();
+    static _moduleInstancePromise;
+    static _moduleInstance;
+    static async _getModuleInstance() {
+        const wasmBytes = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
+        const wasmResponse = new Response(wasmBytes, { headers: { 'Content-Type': 'application/wasm' } });
+        const module = await WebAssembly.instantiateStreaming(wasmResponse, {});
+        XzReadableStream._moduleInstance = module.instance;
+    }
+
+    constructor(compressedStream) {
+        let xzContext;
         let unconsumedInput = null;
+        const compressedReader = compressedStream.getReader();
 
         super({
+            async start(controller) {
+                if (!XzReadableStream._moduleInstance) {
+                    await (XzReadableStream._moduleInstancePromise || (XzReadableStream._moduleInstancePromise = XzReadableStream._getModuleInstance()));
+                }
+                xzContext = new XzContext(XzReadableStream._moduleInstance);
+            },
+
             async pull(controller) {
                 if (xzContext.needsMoreInput()) {
                     if (unconsumedInput === null || unconsumedInput.byteLength === 0) {

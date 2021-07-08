@@ -30,10 +30,6 @@
         <script type='module'>
             import { XzReadableStream } from './lib/xzwasm.js';
     
-            const wasmBytes = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
-            const wasmResponse = new Response(wasmBytes, { headers: { 'Content-Type': 'application/wasm' } });
-            const module = await WebAssembly.instantiateStreaming(wasmResponse, {});
-    
             window.perf = async function(urlToFetch, outputElemSelector, useXz) {
                 const results = [];
                 let byteLength;
@@ -42,7 +38,7 @@
                     const startTime = new Date();
                     const originalResponse = await fetch(urlToFetch);
                     const response = useXz
-                        ? new Response(new XzReadableStream(module.instance, originalResponse.body),
+                        ? new Response(new XzReadableStream(originalResponse.body),
                             { headers: { } })
                         : originalResponse;
                     byteLength = (await response.arrayBuffer()).byteLength;
