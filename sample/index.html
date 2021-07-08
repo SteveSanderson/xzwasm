@@ -27,16 +27,27 @@
             const module = await WebAssembly.instantiateStreaming(wasmResponse, {});
     
             window.perf = async function(urlToFetch, outputElemSelector, useXz) {
-                const startTime = new Date();
-                const originalResponse = await fetch(urlToFetch);
-                const response = useXz
-                    ? new Response(new XzReadableStream(module.instance, originalResponse.body),
-                        { headers: { } })
-                    : originalResponse;
-                const allBytes = await response.arrayBuffer();
-                const duration = new Date().valueOf() - startTime.valueOf();
-                const message = `Fetched ${allBytes.byteLength} bytes in ${duration}ms`;
-                document.querySelector(outputElemSelector).textContent = message;
+                const results = [];
+                let byteLength;
+                for (let i = 0; i < 20; i++) {
+                    const startTime = new Date();
+                    const originalResponse = await fetch(urlToFetch);
+                    const response = useXz
+                        ? new Response(new XzReadableStream(module.instance, originalResponse.body),
+                            { headers: { } })
+                        : originalResponse;
+                    byteLength = (await response.arrayBuffer()).byteLength;
+                    const duration = new Date().valueOf() - startTime.valueOf();
+                    const message = `Obtained ${byteLength} bytes in <strong>${duration}ms</strong>`;
+                    document.querySelector(outputElemSelector).innerHTML = message;
+                    results.push(duration);
+                }
+
+                results.sort();
+                const median = results[Math.floor(results.length * 0.5)];
+                const p90 = results[Math.floor(results.length * 0.9)];
+                const message = `Obtained ${byteLength} bytes in median <strong>${median}ms</strong>; 90th percentile <strong>${p90}ms</strong>`;
+                document.querySelector(outputElemSelector).innerHTML = message;
             };
         </script>
     </body>

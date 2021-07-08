@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "../../module/xz-embedded/linux/include/linux/xz.h"
 
-#define BUFSIZE 100
+#define BUFSIZE 16384
 
 typedef struct DecompressionContextStruct {
     size_t bufsize;
