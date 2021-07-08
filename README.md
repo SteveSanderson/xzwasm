@@ -89,6 +89,12 @@ Decompressing `.xz` data using xzwasm, on Chromium, takes roughly 3x as long as 
 
 As for whether this is a good tradeoff for you, see [Why would anyone do this?](#why-would-anyone-do-this)
 
+## What about `.tar.xz` files?
+
+Since the `.xz` format only represents one file, it's common for people to bundle up a collection of files as `.tar`, and then compress this to `.tar.xz`.
+
+xzwasm doesn't have built-in support for `.tar`. However, you can use xzwasm to convert a `.tar.xz` stream to a stream representing the `.tar` file, and then pass this data to another library such as [js-untar](https://github.com/InvokIT/js-untar) or [tarballjs](https://github.com/ankitrohatgi/tarballjs) to get the bundled files.
+
 ## Building code in this repo
 
 **Note:** This is only needed if you want to work on xzwasm itself. It's not required [if you just want to use xzwasm](#installation).
