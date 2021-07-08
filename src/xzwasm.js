@@ -63,7 +63,10 @@ export class XzReadableStream extends ReadableStream {
     static async _getModuleInstance() {
         const wasmBytes = await (await fetch(xzwasmBytes)).arrayBuffer();
         const wasmResponse = new Response(wasmBytes, { headers: { 'Content-Type': 'application/wasm' } });
-        const module = await WebAssembly.instantiateStreaming(wasmResponse, {});
+        const wasmOptions = {};
+        const module = typeof WebAssembly.instantiateStreaming === 'function'
+            ? await WebAssembly.instantiateStreaming(wasmResponse, wasmOptions)
+            : await WebAssembly.instantiate(await wasmResponse.arrayBuffer(), wasmOptions);
         XzReadableStream._moduleInstance = module.instance;
     }
 

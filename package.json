@@ -1,6 +1,6 @@
 {
   "name": "xzwasm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "XZ decompression for the browser",
   "main": "dist/package/xzwasm.js",
   "scripts": {
