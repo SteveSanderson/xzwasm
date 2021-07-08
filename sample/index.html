@@ -3,7 +3,7 @@
         (async function load() {
             const wasmResponse = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
             const module = await WebAssembly.instantiate(wasmResponse, {});
-            console.log(module.instance.exports.init());
+            console.log(module.instance.exports.create_context());
         })();
     </script>
 </html>

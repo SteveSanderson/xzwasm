@@ -12,9 +12,11 @@ all: dist/xzwasm.wasm sample/lib/*.*
 dist/xzwasm.wasm: src/native/* $(xzdir)/**/*
 	mkdir -p dist
 	$(wasisdkroot)/bin/clang --sysroot=$(wasisdkroot)/share/wasi-sysroot \
-		 --target=wasm32 --no-standard-libraries -Wl,--no-entry \
-		 -Wl,--export=init \
+		 --target=wasm32 -DNDEBUG -Os -s -nostdlib -Wl,--no-entry \
+		 -Wl,--export=create_context \
+		 -Wl,--export=destroy_context \
 		 -o dist/xzwasm.wasm \
+		 module/walloc/walloc.c \
 		 src/native/xzwasm.c
 	#emcc -Os -s --no-entry -o dist/xzwasm.wasm \
 	#	-I$(xzdir)/userspace/ \

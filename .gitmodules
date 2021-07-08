@@ -1,3 +1,6 @@
 [submodule "module/xz-embedded"]
 	path = module/xz-embedded
 	url = https://git.tukaani.org/xz-embedded.git
+[submodule "module/walloc"]
+	path = module/walloc
+	url = https://github.com/wingo/walloc.git
