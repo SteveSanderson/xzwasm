@@ -2,7 +2,7 @@
 
 This is a browser-compatible NPM package that can decompress XZ streams. You can use this if you want your web server to return XZ-encoded content and have your JavaScript code see the uncompressed data. **It's an alternative to Gzip or Brotli compression for HTTP responses.**
 
-Skip to: [How to use](#how-to-use)
+Skip to: [Installation](#installation) or [How to use](#how-to-use)
 
 ## Why would anyone do this?
 
@@ -31,12 +31,56 @@ So, you would only benefit from using XZ:
 
 In most applications the added complexity of XZ via a custom decompressor library won't be worth the small bandwidth saving. But it would be nice if browsers supported XZ natively. It's also a good demonstration of how a technology like WebAssembly can effectively extend the capabilities of a browser.
 
+## Installation
+
+### Option 1: As an NPM package
+
+```
+npm install --save xzwasm
+```
+
+You can then import things from `xzwasm` in your existing JavaScript/TypeScript files. Example:
+
+```js
+import { XzReadableStream } from 'xzwasm';
+```
+
+### Option 2: As a plain `<script>` tag
+
+Download either [xzwasm.js](https://github.com/SteveSanderson/xzwasm/releases/latest/download/xzwasm.js) or [xzwasm.min.js](https://github.com/SteveSanderson/xzwasm/releases/latest/download/xzwasm.min.js) and place it in your project. Then add a `<script>` tag to load it:
+
+```html
+<script src="xzwasm.min.js"></script>
+```
+
+Your page will now have `xzwasm` in global scope. For example, you can call `new xzwasm.XzReadableStream(...)` - see below.
+
 ## How to use
 
-TODO: Add instructions
+First, [install xzwasm into your project](#installation).
 
-## Building
+Now, if you have an XZ-compressed stream, such as a `fetch` response body, you can get a decompressed response by wrapping it with `XzReadableStream`. Example:
 
+```js
+const compressedResponse = await fetch('somefile.xz');
+
+const decompressedResponse = new Response(
+   new XzReadableStream(compressedResponse.body)
+);
+
+// We now have a regular Response object, so can use standard APIs to parse its body data, such as .text(), .json(), or .arrayBuffer():
+const text = await decompressedResponse.text();
+```
+
+The API is designed to be as JavaScript-standard as possible, so `XzReadableStream` is a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) instance, which in turn means you can feed it into a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), and in turn get a blob, an ArrayBuffer, JSON data, or anything else that you browser can do with a `Reponse`.
+
+**Note:** If you're using a `<script>` to reference xzwasm, you probably need to prefix `XzReadableStream` with `xzwasm`. For example, `new xzwasm.XzReadableStream(compressedResponse.body)`.
+
+## Building code in this repo
+
+**Note:** This is only needed if you want to work on xzwasm itself. It's not required [if you just want to use xzwasm](#installation).
+
+ * Clone this repo
  * Clone/update submodules
     * `git submodule update --init --recursive`
  * Ensure you have a working Clang toolchain that can build wasm
@@ -45,13 +89,13 @@ TODO: Add instructions
  * (For testing only) Ensure you have `xz` and `brotli` available as commands on $PATH
  * Run `make`
 
-To build the NPM package contents:
+### Building the NPM package contents
 
  * Have `node` installed
  * `npm install`
  * Run `make package`
 
-## Running scenario/perf tests
+### Running scenario/perf tests
 
  * Have `node` installed
  * `npm install -g http-server`
