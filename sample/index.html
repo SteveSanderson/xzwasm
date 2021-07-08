@@ -92,8 +92,9 @@
         }
 
         (async function load() {
-            const wasmResponse = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
-            const module = await WebAssembly.instantiate(wasmResponse, {});
+            const wasmBytes = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
+            const wasmResponse = new Response(wasmBytes, { headers: { "Content-Type": "application/wasm" } });
+            const module = await WebAssembly.instantiateStreaming(wasmResponse, {});
 
             for (var i = 0; i < 3; i++) {
                 const helloResponse = await fetch('hello.txt.xz');
