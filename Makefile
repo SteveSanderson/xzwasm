@@ -31,6 +31,12 @@ sample/lib/*.*: dist/xzwasm.wasm
 	mkdir -p sample/lib
 	cp dist/xzwasm.wasm sample/lib
 
+	# Make some random data for perf test. Obviously it won't compress well but that's not important here.
+	dd if=/dev/urandom of=sample/random.bin bs=1M count=10 iflag=fullblock
+	xz --check=crc32 -9 -k sample/random.bin
+	brotli sample/random.bin
+
 clean:
 	rm -rf dist
 	rm -rf sample/lib
+	rm sample/random*
