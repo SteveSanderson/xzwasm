@@ -31,4 +31,5 @@ sample/lib/*.*: dist/xzwasm.wasm
 	cp dist/xzwasm.wasm sample/lib
 
 clean:
-	rm -rf dist/
+	rm -rf dist
+	rm -rf sample/lib
