@@ -18,7 +18,7 @@ all: dist/native/xzwasm.wasm sample/lib/*.* sample/data/random*
 
 package: dist/package/xzwasm.js
 
-dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
+dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/* Makefile
 	mkdir -p dist/native
 	$(wasisdkroot)/bin/clang --sysroot=$(wasisdkroot)/share/wasi-sysroot \
 		--target=wasm32 -DNDEBUG -Os -s -nostdlib -Wl,--no-entry \
@@ -37,7 +37,7 @@ dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
 		$(xzlibdir)/xz_dec_stream.c \
 		$(xzlibdir)/xz_dec_lzma2.c
 
-dist/package/xzwasm.js: webpack.config.js src/*.* dist/native/xzwasm.wasm
+dist/package/xzwasm.js: webpack.config.js src/*.* dist/native/xzwasm.wasm package.json
 	@$(webpackcommand)
 
 sample/lib/*.*: dist/package/xzwasm.js
