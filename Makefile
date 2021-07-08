@@ -5,6 +5,13 @@ ifeq ($(wasisdkroot),)
   $(error wasisdkroot is not set)
 endif
 
+ifeq ($(shell grep -o WSL2 /proc/version ),WSL2)
+	# Runs a lot faster for me
+	webpackcommand := cmd.exe /c npm run webpack
+else
+	webpackcommand := npm run webpack
+endif
+
 .PHONY: all clean sample run-sample package
 
 all: dist/native/xzwasm.wasm sample/lib/*.* sample/data/random*
@@ -30,7 +37,7 @@ dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
 		$(xzlibdir)/xz_dec_lzma2.c
 
 dist/package/xzwasm.js: webpack.config.js src/*.* dist/native/xzwasm.wasm
-	npm run webpack
+	@$(webpackcommand)
 
 sample/lib/*.*: dist/package/xzwasm.js
 	mkdir -p sample/lib
