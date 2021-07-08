@@ -1,11 +1,15 @@
 const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
-    mode: 'development',
-    entry: './src/xzwasm.js',
+    mode: 'none',
+    entry: {
+        'xzwasm': './src/xzwasm.js',
+        'xzwasm.min': './src/xzwasm.js',
+    },
     devtool: false,
     output: {
-        filename: 'xzwasm.js',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'dist/package'),
         library: {
             name: 'xz',
@@ -17,5 +21,9 @@ module.exports = {
             test: /\.wasm/,
             type: 'asset/inline'
         }]
+    },
+    optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin({ include: /\.min\.js$/ })]
     }
 }
