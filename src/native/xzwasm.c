@@ -24,7 +24,7 @@ DecompressionContext* create_context() {
 }
 
 void destroy_context(DecompressionContext* context) {
-    free(context->s);
+    xz_dec_end(context->s);
     free(context);
 }
 
