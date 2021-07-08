@@ -15,8 +15,8 @@
     "xz",
     "wasm"
   ],
-  "author": "Steve Sanderson",
-  "license": "Apache-2.0",
+  "author": "Steven Sanderson",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/SteveSanderson/xzwasm/issues"
   },
