@@ -6,6 +6,7 @@ DecompressionContext* create_context() {
     if (!has_initialized) {
         has_initialized = 1;
         xz_crc32_init();
+        xz_crc64_init();
     }
 
     DecompressionContext* context = malloc(sizeof(DecompressionContext));

@@ -22,7 +22,7 @@ dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
 	mkdir -p dist/native
 	$(wasisdkroot)/bin/clang --sysroot=$(wasisdkroot)/share/wasi-sysroot \
 		--target=wasm32 -DNDEBUG -Os -s -nostdlib -mbulk-memory -Wl,--no-entry \
-		-DXZ_DEC_CONCATENATED \
+		-DXZ_DEC_CONCATENATED -DXZ_USE_CRC64 \
 		-Wl,--export=create_context \
 		-Wl,--export=destroy_context \
 		-Wl,--export=supply_input \
@@ -33,6 +33,7 @@ dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
 		module/walloc/walloc.c \
 		src/native/*.c \
 		$(xzlibdir)/xz_crc32.c \
+		$(xzlibdir)/xz_crc64.c \
 		$(xzlibdir)/xz_dec_stream.c \
 		$(xzlibdir)/xz_dec_lzma2.c
 
@@ -48,7 +49,7 @@ sample/data/random*:
 	dd if=/dev/urandom of=sample/data/random-10K.bin bs=1K count=10 iflag=fullblock
 	dd if=/dev/urandom of=sample/data/random-1M.bin bs=1M count=1 iflag=fullblock
 	dd if=/dev/urandom of=sample/data/random-10M.bin bs=1M count=10 iflag=fullblock
-	xz --check=crc32 -9 -k sample/data/random-10K.bin
+	xz --check=crc64 -9 -k sample/data/random-10K.bin
 	xz --check=crc32 -9 -k sample/data/random-1M.bin
 	xz --check=crc32 -9 -k sample/data/random-10M.bin
 	xz --check=crc32 -9 -k sample/data/sample.wasm
