@@ -36,16 +36,6 @@ void supply_input(DecompressionContext* context, size_t in_size) {
 
 enum xz_ret get_next_output(DecompressionContext* context) {
     struct xz_buf *b = &context->b;
-
-    if (b->in_pos == b->in_size) {
-        // We've run out of input. The caller needs to detect this based on the
-        // output length being zero. If they have no more input to supply, they
-        // should end the process.
-        b->out_pos = 0;
-        b->out_size = 0;
-        return XZ_OK;
-    }
-
     enum xz_ret ret = xz_dec_catrun(context->s, b, b->in_size == 0);
     return ret;
 }

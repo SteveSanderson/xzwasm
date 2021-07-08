@@ -1,5 +1,8 @@
 <html>
     <script>
+        const XZ_OK = 0;
+        const XZ_STREAM_END = 1;
+
         class XzContext {
             constructor(moduleInstance) {
                 this.exports = moduleInstance.exports;
@@ -16,10 +19,16 @@
 
             getNextOutput() {
                 const result = this.exports.get_next_output(this.ptr);
-                if (result !== 0) {
+                if (result !== XZ_OK && result !== XZ_STREAM_END) {
                     throw new Error(`get_next_output failed with error code ${result}`);
                 }
                 this._refresh();
+                return result === XZ_STREAM_END;
+            }
+
+            resetOutputBuffer() {
+                // outPos = 0;
+                this.outPos = this.mem32[5] = 0;
             }
 
             dispose() {
@@ -44,6 +53,11 @@
                     this.in = this.mem8.subarray(this.inStart, this.inEnd);
                     this.out = this.mem8.subarray(this.outStart, this.outEnd);
                 }
+
+                this.inPos = this.mem32[2];
+                this.inSize = this.mem32[3];
+                this.outPos = this.mem32[5];
+                this.outSize = this.mem32[6];
             }
         }
 
@@ -53,25 +67,35 @@
 
             for (var i = 0; i < 3; i++) {
                 const context = new XzContext(module.instance);
-                console.log(context.ptr);
                 try {
-                    const sourceData = new Uint8Array(base64ToArrayBuffer('/Td6WFoAAAFpIt42AgAhARYAAAB0L+WjAQAFSGVsbG8KAAAAFjWWMQABGgbF6sh5kEKZDQEAAAAAAVla'));
-                    context.supplyInput(sourceData);
-                    context.getNextOutput();
+                    const sourceBuffer = await (await fetch('hello.txt.xz')).arrayBuffer();
+                    const outputBuffer = new ArrayBuffer(10*1024*1024);
+                    let outputData = new Uint8Array(outputBuffer, 0, 0);
+                    let sourceData = new Uint8Array(sourceBuffer);
+                    let finished = false;
+                    while (!finished) {
+                        if (context.inPos === context.inSize) {
+                            const nextInputLength = Math.min(context.bufSize, sourceData.byteLength);
+                            context.supplyInput(sourceData.subarray(0, nextInputLength));
+                            sourceData = sourceData.subarray(nextInputLength);
+                        }
+
+                        finished = context.getNextOutput();
+
+                        if (context.outPos === context.bufSize || finished) {
+                            // Emit output
+                            outputData = new Uint8Array(outputBuffer, 0, outputData.byteLength + context.outPos);
+                            outputData.set(context.out.subarray(0, context.outPos), outputData.byteLength - context.outPos);
+
+                            context.resetOutputBuffer();
+                        }
+                    }
+
+                    console.log(new TextDecoder().decode(outputData));
                 } finally {
                     context.dispose();
                 }
             }
         })();
-
-        function base64ToArrayBuffer(base64) {
-            var binary_string = window.atob(base64);
-            var len = binary_string.length;
-            var bytes = new Uint8Array(len);
-            for (var i = 0; i < len; i++) {
-                bytes[i] = binary_string.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
     </script>
 </html>
