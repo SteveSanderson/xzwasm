@@ -2,7 +2,7 @@
   "name": "xzwasm",
   "version": "0.1.0",
   "description": "XZ decompression for the browser",
-  "main": "src/xzwasm.js",
+  "main": "dist/package/xzwasm.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "webpack": "webpack"

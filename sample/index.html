@@ -28,9 +28,8 @@
             </p>
         </fieldset>
 
-        <script type='module'>
-            import { XzReadableStream } from './lib/xzwasm.js';
-    
+        <script src='lib/xzwasm.js'></script>
+        <script>
             window.perf = async function(suffix, outputElemSelector, useXz) {
                 const results = [];
                 let byteLength;
@@ -39,7 +38,7 @@
                     const startTime = new Date();
                     const originalResponse = await fetch(urlToFetch);
                     const response = useXz
-                        ? new Response(new XzReadableStream(originalResponse.body),
+                        ? new Response(new xz.XzReadableStream(originalResponse.body),
                             { headers: { } })
                         : originalResponse;
                     byteLength = (await response.arrayBuffer()).byteLength;

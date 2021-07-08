@@ -9,7 +9,7 @@ endif
 
 all: dist/native/xzwasm.wasm sample/lib/*.* sample/data/random*
 
-package: dist/package/main.js
+package: dist/package/xzwasm.js
 
 dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
 	mkdir -p dist/native
@@ -29,13 +29,12 @@ dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
 		$(xzlibdir)/xz_dec_stream.c \
 		$(xzlibdir)/xz_dec_lzma2.c
 
-dist/package/main.js: webpack.config.js src/*.* dist/native/xzwasm.wasm
+dist/package/xzwasm.js: webpack.config.js src/*.* dist/native/xzwasm.wasm
 	npm run webpack
 
-sample/lib/*.*: dist/native/xzwasm.wasm src/xzwasm.js
+sample/lib/*.*: dist/package/xzwasm.js
 	mkdir -p sample/lib
-	cp dist/native/xzwasm.wasm sample/lib
-	cp src/xzwasm.js sample/lib
+	cp dist/package/xzwasm.js sample/lib
 
 sample/data/random*:
 	# Random data isn't very realistic. The sample wasm file compresses in a more relevant way.
