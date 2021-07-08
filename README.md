@@ -7,3 +7,9 @@
     * `export wasisdkroot=/path/to/wask-sdk`
  * (For testing only) Ensure you have `xz` and `brotli` available as commands on $PATH
  * Run `make`
+
+## Running perf tests
+
+ * Have `node` installed
+ * `npm install -g http-server`
+ * `make run-sample`

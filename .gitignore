@@ -2,3 +2,5 @@
 dist/
 sample/lib/
 sample/data/random*
+sample/data/sample.wasm.xz
+sample/data/sample.wasm-brotli.br

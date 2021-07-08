@@ -3,25 +3,26 @@
         <fieldset>
             <legend>Perf test</legend>
             <p>
-                File size:
-                <select id="perf-file-size">
-                    <option value="10K">10 KiB</option>
-                    <option value="1M" selected>1 MiB</option>
-                    <option value="10M">10 MiB</option>
+                Scenario:
+                <select id="scenario-filename">
+                    <option value="data/random-10K.bin">10 KiB random data</option>
+                    <option value="data/random-1M.bin" selected>1 MiB random data</option>
+                    <option value="data/random-10M.bin">10 MiB random data</option>
+                    <option value="data/sample.wasm">2.2 MiB WebAssembly bytecode</option>
                 </select>
             </p>
             <p>
-                <button onclick="perf('data/random-SIZE.bin', '#perf-uncompressed', false)">Start</button>
+                <button onclick="perf('', '#perf-uncompressed', false)">Start</button>
                 <strong>Uncompressed file</strong>
                 <span id='perf-uncompressed'></span>
             </p>
             <p>
-                <button onclick="perf('data/random-SIZE-brotli.bin', '#perf-brotli', false)">Start</button>
+                <button onclick="perf('-brotli', '#perf-brotli', false)">Start</button>
                 <strong>Brotli compressed</strong>
                 <span id='perf-brotli'></span>
             </p>
             <p>
-                <button onclick="perf('data/random-SIZE.bin.xz', '#perf-xz', true)">Start</button>
+                <button onclick="perf('.xz', '#perf-xz', true)">Start</button>
                 <strong>XZ compressed</strong>
                 <span id='perf-xz'></span>
             </p>
@@ -30,10 +31,10 @@
         <script type='module'>
             import { XzReadableStream } from './lib/xzwasm.js';
     
-            window.perf = async function(urlToFetch, outputElemSelector, useXz) {
+            window.perf = async function(suffix, outputElemSelector, useXz) {
                 const results = [];
                 let byteLength;
-                urlToFetch = urlToFetch.replace('SIZE', document.getElementById('perf-file-size').value);
+                const urlToFetch = document.getElementById('scenario-filename').value + suffix;
                 for (let i = 0; i < 100; i++) {
                     const startTime = new Date();
                     const originalResponse = await fetch(urlToFetch);
