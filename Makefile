@@ -5,12 +5,14 @@ ifeq ($(wasisdkroot),)
   $(error wasisdkroot is not set)
 endif
 
-.PHONY: all clean sample run-sample
+.PHONY: all clean sample run-sample package
 
-all: dist/xzwasm.wasm sample/lib/*.* sample/data/random*
+all: dist/native/xzwasm.wasm sample/lib/*.* sample/data/random*
 
-dist/xzwasm.wasm: src/native/* $(xzdir)/**/*
-	mkdir -p dist
+package: dist/package/main.js
+
+dist/native/xzwasm.wasm: src/native/* $(xzdir)/**/*
+	mkdir -p dist/native
 	$(wasisdkroot)/bin/clang --sysroot=$(wasisdkroot)/share/wasi-sysroot \
 		--target=wasm32 -DNDEBUG -Os -s -nostdlib -mbulk-memory -Wl,--no-entry \
 		-DXZ_DEC_CONCATENATED \
@@ -18,7 +20,7 @@ dist/xzwasm.wasm: src/native/* $(xzdir)/**/*
 		-Wl,--export=destroy_context \
 		-Wl,--export=supply_input \
 		-Wl,--export=get_next_output \
-		-o dist/xzwasm.wasm \
+		-o dist/native/xzwasm.wasm \
 		-I$(xzdir)/userspace/ \
 		-I$(xzdir)/linux/include/linux/ \
 		module/walloc/walloc.c \
@@ -27,9 +29,12 @@ dist/xzwasm.wasm: src/native/* $(xzdir)/**/*
 		$(xzlibdir)/xz_dec_stream.c \
 		$(xzlibdir)/xz_dec_lzma2.c
 
-sample/lib/*.*: dist/xzwasm.wasm src/xzwasm.js
+dist/package/main.js: webpack.config.js src/*.* dist/native/xzwasm.wasm
+	npm run webpack
+
+sample/lib/*.*: dist/native/xzwasm.wasm src/xzwasm.js
 	mkdir -p sample/lib
-	cp dist/xzwasm.wasm sample/lib
+	cp dist/native/xzwasm.wasm sample/lib
 	cp src/xzwasm.js sample/lib
 
 sample/data/random*:
@@ -53,3 +58,5 @@ clean:
 	rm -rf dist
 	rm -rf sample/lib
 	rm sample/data/random*
+	rm sample/data/sample.wasm.xz
+	rm sample/data/sample.wasm-brotli.br

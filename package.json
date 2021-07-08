@@ -1,0 +1,28 @@
+{
+  "name": "xzwasm",
+  "version": "0.1.0",
+  "description": "XZ decompression for the browser",
+  "main": "src/xzwasm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webpack": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SteveSanderson/xzwasm.git"
+  },
+  "keywords": [
+    "xz",
+    "wasm"
+  ],
+  "author": "Steve Sanderson",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/SteveSanderson/xzwasm/issues"
+  },
+  "homepage": "https://github.com/SteveSanderson/xzwasm#readme",
+  "devDependencies": {
+    "webpack": "^5.41.0",
+    "webpack-cli": "^4.7.2"
+  }
+}

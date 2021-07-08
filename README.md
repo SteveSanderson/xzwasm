@@ -8,7 +8,13 @@
  * (For testing only) Ensure you have `xz` and `brotli` available as commands on $PATH
  * Run `make`
 
-## Running perf tests
+To build the NPM package contents:
+
+ * Have `node` installed
+ * `npm install`
+ * Run `make package`
+
+## Running scenario/perf tests
 
  * Have `node` installed
  * `npm install -g http-server`
