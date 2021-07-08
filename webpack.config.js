@@ -12,10 +12,8 @@ module.exports = {
     output: {
         filename: '[name].js',
         path: path.resolve(__dirname, 'dist/package'),
-        library: {
-            name: 'xz',
-            type: 'var',
-        }
+        library: 'xzwasm',
+        libraryTarget: 'umd',
     },
     module: {
         rules: [{

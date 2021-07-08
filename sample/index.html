@@ -38,7 +38,7 @@
                     const startTime = new Date();
                     const originalResponse = await fetch(urlToFetch);
                     const response = useXz
-                        ? new Response(new xz.XzReadableStream(originalResponse.body),
+                        ? new Response(new xzwasm.XzReadableStream(originalResponse.body),
                             { headers: { } })
                         : originalResponse;
                     byteLength = (await response.arrayBuffer()).byteLength;
