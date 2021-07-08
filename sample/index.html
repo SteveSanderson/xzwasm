@@ -6,6 +6,13 @@
 
             for (var i = 0; i < 3; i++) {
                 const context = module.instance.exports.create_context();
+                const xz_buf_ptr = context + 4;
+
+                const mem = new Uint32Array(module.instance.exports.memory.buffer);
+                const bufsize = mem[context>>2];
+                const inptr = mem[(xz_buf_ptr>>2)];
+                const outptr = mem[(xz_buf_ptr>>2) + 3];
+
                 console.log(context);
                 module.instance.exports.destroy_context(context);
             }
