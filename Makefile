@@ -5,9 +5,9 @@ ifeq ($(wasisdkroot),)
   $(error wasisdkroot is not set)
 endif
 
-.PHONY: all clean sample
+.PHONY: all clean sample run-sample
 
-all: dist/xzwasm.wasm sample/lib/*.* sample/data/*.*
+all: dist/xzwasm.wasm sample/lib/*.* sample/data/random*
 
 dist/xzwasm.wasm: src/native/* $(xzdir)/**/*
 	mkdir -p dist
@@ -32,13 +32,16 @@ sample/lib/*.*: dist/xzwasm.wasm src/xzwasm.js
 	cp dist/xzwasm.wasm sample/lib
 	cp src/xzwasm.js sample/lib
 
-sample/data/*.*:
+sample/data/random*:
 	# Make some random data for perf test. Obviously it won't compress well but that's not important here.
 	dd if=/dev/urandom of=sample/data/random.bin bs=1M count=10 iflag=fullblock
 	xz --check=crc32 -9 -k sample/data/random.bin
-	brotli sample/data/random.bin
+	brotli sample/data/random.bin -o sample/data/random-brotli.bin.br
+
+run-sample:
+	http-server -b
 
 clean:
 	rm -rf dist
 	rm -rf sample/lib
-	rm sample/random*
+	rm sample/data/random*
