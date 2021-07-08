@@ -1,7 +1,6 @@
-#include <stdlib.h>
+#include "xzwasm.h"
 
-int testInt() {
-    //char *s1 = 'x'; (char*) malloc(256*1024);
-    //s1[0] = 123;
-    return 1234;
+DecompressionContext* init() {
+    DecompressionContext* context = (void*)123; //malloc(sizeof(DecompressionContext));
+    return context;
 }

@@ -9,11 +9,11 @@ endif
 
 all: dist/xzwasm.wasm sample/lib/*.*
 
-dist/xzwasm.wasm: src/native/xzwasm.c $(xzdir)/**/*
+dist/xzwasm.wasm: src/native/* $(xzdir)/**/*
 	mkdir -p dist
 	$(wasisdkroot)/bin/clang --sysroot=$(wasisdkroot)/share/wasi-sysroot \
 		 --target=wasm32 --no-standard-libraries -Wl,--no-entry \
-		 -Wl,--export=testInt \
+		 -Wl,--export=init \
 		 -o dist/xzwasm.wasm \
 		 src/native/xzwasm.c
 	#emcc -Os -s --no-entry -o dist/xzwasm.wasm \
