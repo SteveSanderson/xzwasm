@@ -57,38 +57,41 @@
             }
         }
 
-        function xzDecompress(wasmModuleInstance, compressedStream) {
-            const xzContext = new XzContext(wasmModuleInstance);
-            const compressedReader = compressedStream.getReader();
-            let unconsumedInput = null;
-            return new ReadableStream({
-                async pull(controller) {
-                    if (xzContext.needsMoreInput()) {
-                        if (unconsumedInput === null || unconsumedInput.byteLength === 0) {
-                            const { done, value } = await compressedReader.read();
-                            if (!done) {
-                                unconsumedInput = value;
+        class XzReadableStream extends ReadableStream {
+            constructor(wasmModuleInstance, compressedStream) {
+                const xzContext = new XzContext(wasmModuleInstance);
+                const compressedReader = compressedStream.getReader();
+                let unconsumedInput = null;
+
+                super({
+                    async pull(controller) {
+                        if (xzContext.needsMoreInput()) {
+                            if (unconsumedInput === null || unconsumedInput.byteLength === 0) {
+                                const { done, value } = await compressedReader.read();
+                                if (!done) {
+                                    unconsumedInput = value;
+                                }
                             }
+                            const nextInputLength = Math.min(xzContext.bufSize, unconsumedInput.byteLength);
+                            xzContext.supplyInput(unconsumedInput.subarray(0, nextInputLength));
+                            unconsumedInput = unconsumedInput.subarray(nextInputLength);
                         }
-                        const nextInputLength = Math.min(xzContext.bufSize, unconsumedInput.byteLength);
-                        xzContext.supplyInput(unconsumedInput.subarray(0, nextInputLength));
-                        unconsumedInput = unconsumedInput.subarray(nextInputLength);
-                    }
 
-                    const nextOutputResult = xzContext.getNextOutput();
-                    controller.enqueue(nextOutputResult.outChunk);
-                    xzContext.resetOutputBuffer();
+                        const nextOutputResult = xzContext.getNextOutput();
+                        controller.enqueue(nextOutputResult.outChunk);
+                        xzContext.resetOutputBuffer();
 
-                    if (nextOutputResult.finished) {
+                        if (nextOutputResult.finished) {
+                            xzContext.dispose(); // Not sure if this always happens
+                            controller.close();
+                        }
+                    },
+                    cancel() {
                         xzContext.dispose(); // Not sure if this always happens
-                        controller.close();
+                        return compressedReader.cancel();
                     }
-                },
-                cancel() {
-                    xzContext.dispose(); // Not sure if this always happens
-                    return compressedReader.cancel();
-                }
-            });
+                });
+            }
         }
 
         (async function load() {
@@ -98,7 +101,7 @@
 
             for (var i = 0; i < 3; i++) {
                 const helloResponse = await fetch('hello.txt.xz');
-                const decompressedStream = xzDecompress(module.instance, helloResponse.body);
+                const decompressedStream = new XzReadableStream(module.instance, helloResponse.body);
                 const decompressedResponse = new Response(decompressedStream, { headers: { "Content-Type": "text/html" } });
                 const allText = await decompressedResponse.text();
                 console.log(allText);
