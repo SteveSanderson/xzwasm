@@ -57,39 +57,50 @@
             }
         }
 
+        function xzDecompress(wasmModuleInstance, compressedStream) {
+            const xzContext = new XzContext(wasmModuleInstance);
+            const compressedReader = compressedStream.getReader();
+            let unconsumedInput = null;
+            return new ReadableStream({
+                async pull(controller) {
+                    if (xzContext.needsMoreInput()) {
+                        if (unconsumedInput === null || unconsumedInput.byteLength === 0) {
+                            const { done, value } = await compressedReader.read();
+                            if (!done) {
+                                unconsumedInput = value;
+                            }
+                        }
+                        const nextInputLength = Math.min(xzContext.bufSize, unconsumedInput.byteLength);
+                        xzContext.supplyInput(unconsumedInput.subarray(0, nextInputLength));
+                        unconsumedInput = unconsumedInput.subarray(nextInputLength);
+                    }
+
+                    const nextOutputResult = xzContext.getNextOutput();
+                    controller.enqueue(nextOutputResult.outChunk);
+                    xzContext.resetOutputBuffer();
+
+                    if (nextOutputResult.finished) {
+                        xzContext.dispose(); // Not sure if this always happens
+                        controller.close();
+                    }
+                },
+                cancel() {
+                    xzContext.dispose(); // Not sure if this always happens
+                    return compressedReader.cancel();
+                }
+            });
+        }
+
         (async function load() {
             const wasmResponse = await (await fetch('lib/xzwasm.wasm')).arrayBuffer();
             const module = await WebAssembly.instantiate(wasmResponse, {});
-            const sourceBuffer = await (await fetch('hello.txt.xz')).arrayBuffer();
 
             for (var i = 0; i < 3; i++) {
-                const context = new XzContext(module.instance);
-                try {
-                    const outputBuffer = new ArrayBuffer(10*1024*1024);
-                    let outputData = new Uint8Array(outputBuffer, 0, 0);
-                    let sourceData = new Uint8Array(sourceBuffer);
-                    let finished = false;
-                    let outChunk;
-                    while (!finished) {
-                        if (context.needsMoreInput()) {
-                            const nextInputLength = Math.min(context.bufSize, sourceData.byteLength);
-                            context.supplyInput(sourceData.subarray(0, nextInputLength));
-                            sourceData = sourceData.subarray(nextInputLength);
-                        }
-
-                        ({ outChunk, finished } = context.getNextOutput());
-
-                        if (finished || context.outputBufferIsFull()) {
-                            outputData = new Uint8Array(outputBuffer, 0, outputData.byteLength + outChunk.byteLength);
-                            outputData.set(outChunk, outputData.byteLength - outChunk.byteLength);
-                            context.resetOutputBuffer();
-                        }
-                    }
-
-                    console.log(new TextDecoder().decode(outputData));
-                } finally {
-                    context.dispose();
-                }
+                const helloResponse = await fetch('hello.txt.xz');
+                const decompressedStream = xzDecompress(module.instance, helloResponse.body);
+                const decompressedResponse = new Response(decompressedStream, { headers: { "Content-Type": "text/html" } });
+                const allText = await decompressedResponse.text();
+                console.log(allText);
             }
         })();
     </script>
