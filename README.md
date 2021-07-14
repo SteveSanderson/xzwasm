@@ -25,7 +25,7 @@ The main drawbacks to using XZ in the browser are:
 
 So, you would only benefit from using XZ:
 
- * If the best available alternative is Gzip (as is currently the case in Firefox)
+ * If the best available alternative is Gzip
  * Or, if you're serving very large bundles of bytecode.
  * Or, if you care a lot about *compression* (not decompression) speed. XZ can be 5-10x faster to compress than Brotli, especially at the highest compression level.
 
