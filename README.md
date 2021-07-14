@@ -29,7 +29,7 @@ So, you would only benefit from using XZ:
  * Or, if you're serving very large bundles of bytecode.
  * Or, if you care a lot about *compression* (not decompression) speed. XZ can be 5-10x faster to compress than Brotli, especially at the highest compression level.
 
-In most applications the added complexity of XZ via a custom decompressor library won't be worth the small bandwidth saving. But it would be nice if browsers supported XZ natively. It's also a good demonstration of how a technology like WebAssembly can effectively extend the capabilities of a browser.
+**In most applications the added complexity of XZ via a custom decompressor library won't be worth the small bandwidth saving.** But it would be nice if browsers supported XZ natively. It's also a good demonstration of how a technology like WebAssembly can effectively extend the capabilities of a browser.
 
 ## Installation
 
