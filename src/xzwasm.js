@@ -28,7 +28,7 @@ class XzContext {
         if (result !== XZ_OK && result !== XZ_STREAM_END) {
             throw new Error(`get_next_output failed with error code ${result}`);
         }
-        const outChunk = this.mem8.subarray(this.outStart, this.outStart + /* outPos */ this.mem32[5]);
+        const outChunk = this.mem8.slice(this.outStart, this.outStart + /* outPos */ this.mem32[5]);
         return { outChunk, finished: result === XZ_STREAM_END };
     }
 
